@@ -1,17 +1,32 @@
-require('dotenv').config()
-const express = require('express')
-const app = express()
-// TODO: import the getCityInfo and getJobs functions from util.js
+require('dotenv').config();
+const express = require('express');
+const path = require('path');
+const { getCityInfo, getJobs } = require('./util'); 
+const app = express();
 
-// TODO: Statically serve the public folder
 
-// TODO: declare the GET route /api/city/:city
-// This endpoint should call getCityInfo and getJobs and return
-// the result as JSON.
-// The returned JSON object should have two keys:
-// cityInfo (with value of the getCityInfo function)
-// jobs (with value of the getJobs function)
-// If no city info or jobs are found,
-// the endpoint should return a 404 status
+app.use(express.static(path.join(__dirname, 'public')));
 
-module.exports = app
+
+app.get('/api/city/:city', async (req, res) => {
+    const city = req.params.city;
+
+    try {
+    
+        const cityInfo = await getCityInfo(city);
+        const jobs = await getJobs(city);
+
+        if (cityInfo && jobs) {
+     
+            res.json({ cityInfo, jobs });
+        } else {
+
+            res.status(404).json({ message: 'City data not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+module.exports = app;
